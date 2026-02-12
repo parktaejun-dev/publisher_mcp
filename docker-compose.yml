@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ad_data_layer
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+      - uploads:/data/uploads
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/ad_data_layer
+      - UPLOAD_DIR=/data/uploads
+      - JOB_POLL_INTERVAL=${JOB_POLL_INTERVAL:-5}
+      - ENGINE_DEFAULT=${ENGINE_DEFAULT:-server_native}
+      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN:-http://localhost:3000}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    command: python -m backend.services.job_runner
+    volumes:
+      - .:/app
+      - uploads:/data/uploads
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/ad_data_layer
+      - UPLOAD_DIR=/data/uploads
+      - JOB_POLL_INTERVAL=${JOB_POLL_INTERVAL:-5}
+      - ENGINE_DEFAULT=${ENGINE_DEFAULT:-server_native}
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+  uploads:

@@ -1,0 +1,30 @@
+# Dockerfile.backend
+FROM python:3.11-slim
+
+# Install system dependencies
+# libpq-dev for psycopg2, gcc for compiling certain python packages
+# poppler-utils for potential pdf processing if needed (though pymupdf is self-contained usually)
+# libmagic1 for file type detection if python-magic is used (good practice)
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    poppler-utils \
+    libmagic1 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python dependencies
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY . .
+
+# Set environment variables
+ENV PYTHONPATH=/app
+
+# Expose port
+EXPOSE 8000
+
+# Command is specified in docker-compose.yml

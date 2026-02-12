@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "media_owner": { "type": ["string", "null"] },
+    "media_name": { "type": ["string", "null"] },
+    "product_name": { "type": ["string", "null"] },
+    "media_type": { "type": ["string", "null"] },
+    "pricing_model": { "type": ["string", "null"] },
+    "price_text": { "type": ["string", "null"] },
+    "min_budget_text": { "type": ["string", "null"] },
+    "targeting_text": { "type": ["string", "null"] },
+    "specs_text": { "type": ["string", "null"] },
+    "kpi_text": { "type": ["string", "null"] },
+    "sales_contact": { "type": ["string", "null"] },
+    "valid_until": { "type": ["string", "null"] },
+    "doc_meta": {
+      "type": "object",
+      "properties": {
+        "doc_url_or_filename": { "type": "string" },
+        "doc_date": { "type": ["string", "null"] }
+      },
+      "required": ["doc_url_or_filename"]
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "enum": [
+              "media_owner",
+              "media_name",
+              "product_name",
+              "media_type",
+              "pricing_model",
+              "price_text",
+              "min_budget_text",
+              "targeting_text",
+              "specs_text",
+              "kpi_text",
+              "sales_contact",
+              "valid_until"
+            ]
+          },
+          "quote": { "type": "string" },
+          "page": { "type": ["integer", "null"] }
+        },
+        "required": ["field", "quote"]
+      }
+    }
+  },
+  "required": [
+    "media_owner",
+    "media_name",
+    "product_name",
+    "media_type",
+    "pricing_model",
+    "doc_meta",
+    "evidence"
+  ]
+}
